@@ -10,7 +10,7 @@ const cookieParser = require("cookie-parser");
 // middleware
 app.use(
   cors({
-    origin: ["https://silver-telegram-note.vercel.app"],
+    origin: ["http://localhost:5173"],
     credentials: true,
   })
 );
@@ -73,8 +73,8 @@ app.post("/users", logger, async (req, res) => {
   res
     .cookie("token", token, {
       httpOnly: true,
-      secure: true, //in case of http -> false & in case of https -> true
-      sameSite: "none", //if backend and frontend run from different port
+      secure: false, //in case of http -> false & in case of https -> true
+      //sameSite : 'none' //if backend and frontend run from different port
     })
     .send({ success: true });
 });
@@ -100,6 +100,13 @@ app.post("/notes", logger, verifyToken, async (req, res) => {
   } catch (e) {
     res.send("Failed to create a new note");
   }
+});
+
+app.delete("/notes/:id", logger, verifyToken, async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  await notes.deleteOne(query);
+  res.send("The note is deleted successfully");
 });
 
 app.listen(port, () => {
