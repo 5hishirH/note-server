@@ -10,7 +10,7 @@ const cookieParser = require("cookie-parser");
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://silver-telegram-note.vercel.app"],
     credentials: true,
   })
 );
@@ -73,8 +73,8 @@ app.post("/users", logger, async (req, res) => {
   res
     .cookie("token", token, {
       httpOnly: true,
-      secure: false, //in case of http -> false & in case of https -> true
-      //sameSite : 'none' //if backend and frontend run from different port
+      secure: true, //in case of http -> false & in case of https -> true
+      sameSite : 'none' //if backend and frontend run from different port
     })
     .send({ success: true });
 });
@@ -92,6 +92,13 @@ app.get("/notes", logger, verifyToken, async (req, res) => {
   res.send(result);
 });
 
+app.get("/notes/:id", logger, verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const query = { _id: new ObjectId(id) };
+  const result = await notes.findOne(query);
+  res.send(result);
+});
+
 app.post("/notes", logger, verifyToken, async (req, res) => {
   try {
     const newNote = req.body;
@@ -100,6 +107,16 @@ app.post("/notes", logger, verifyToken, async (req, res) => {
   } catch (e) {
     res.send("Failed to create a new note");
   }
+});
+
+app.put("/notes/:id", logger, verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const updatedNote = req.body;
+  const filter = { _id: new ObjectId(id) };
+  const options = { upsert: true };
+
+  const result = await notes.updateOne(filter, { $set: updatedNote }, options);
+  res.send(result);
 });
 
 app.delete("/notes/:id", logger, verifyToken, async (req, res) => {
