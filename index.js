@@ -64,7 +64,7 @@ app.post("/users", logger, async (req, res) => {
   const { email } = user;
   const result = await userCollection.findOne({ email: email });
   if (!result) {
-    await userCollection.insertOne({ email, username, profilePic });
+    await userCollection.insertOne(user);
   }
   const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "1h",
@@ -74,7 +74,7 @@ app.post("/users", logger, async (req, res) => {
     .cookie("token", token, {
       httpOnly: true,
       secure: true, //in case of http -> false & in case of https -> true
-      sameSite : 'none' //if backend and frontend run from different port
+      sameSite: "none", //if backend and frontend run from different port
     })
     .send({ success: true });
 });
